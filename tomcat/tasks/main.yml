@@ -1,0 +1,78 @@
+---
+- name: Update apt packages 
+  apt: upgrade=yes update_cache=yes cache_valid_time=86400
+
+- name: Install default-jdk
+  apt: pkg=default-jdk state=present
+
+- name: Add group "tomcat"
+  group: name=tomcat
+
+- name: Add user "tomcat"
+  user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+  
+- name: Download tomcat
+  get_url: url=http://redrockdigimark.com/apachemirror/tomcat/tomcat-8/v8.5.31/bin/apache-tomcat-8.5.31.tar.gz dest=/opt/apache-tomcat-8.5.31.tar.gz
+
+- name: Create /opt/tomcat directory
+  file:
+   path: /opt/tomcat
+   state: directory
+   mode: 0755
+
+- name: Extract archive 
+  command: chdir=/usr/share /bin/tar xvf /opt/apache-tomcat-8.5.31.tar.gz -C /opt/ creates=/opt/apache-tomcat-8.5.31
+- name: Symlink install directory
+   file: src=/opt/apache-tomcat-8.5.31 path=/usr/share/tomcat state=link
+
+- name: Change ownership of Tomcat installation
+   file: path=/usr/share/tomcat/ owner=tomcat group=tomcat state=directory recurse=yes
+- name: Change ownership of Tomcat installation
+    file:
+                path: /opt/tomcat/
+                    owner: tomcat
+                        group: tomcat
+                            mode: 0755
+                                state: directory
+                                    recurse: yes
+
+- name: create tomcat.service file
+    file:
+                path: /etc/systemd/system/tomcat.service
+                    state: touch
+
+- name: create tomcat service
+    blockinfile:
+                path: /etc/systemd/system/tomcat.service
+                    block: |
+                                  [Unit]
+                                        Description=Apache Tomcat Web Application Container
+                                              After=syslog.target network.target
+                                                    [Service]
+                                                          Type=forking
+                                                                User=tomcat
+                                                                      Group=tomcat
+                                                                            Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre
+                                                                                  Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+                                                                                        Environment=CATALINA_HOME=/opt/tomcat
+                                                                                              Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+                                                                                                    Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+                                                                                                          ExecStart=/opt/tomcat/bin/startup.sh
+                                                                                                                ExecStop=/opt/tomcat/bin/shutdown.sh
+
+                                                                                                                      User=tomcat
+                                                                                                                            Group=tomcat
+                                                                                                                                  UMask=0007
+                                                                                                                                        RestartSec=10
+                                                                                                                                              Restart=always
+                                                                                                                                                    [Install]
+                                                                                                                                                          WantedBy=multi-user.target
+- name: enable & start tomcat service
+    systemd:
+                name: tomcat
+                    state: started
+                        enabled: yes
+- name: setup app directory
+    file:
+                path: /app
+                    state: directory
