@@ -28,51 +28,51 @@
 - name: Change ownership of Tomcat installation
    file: path=/usr/share/tomcat/ owner=tomcat group=tomcat state=directory recurse=yes
 - name: Change ownership of Tomcat installation
-    file:
-                path: /opt/tomcat/
-                    owner: tomcat
-                        group: tomcat
-                            mode: 0755
-                                state: directory
-                                    recurse: yes
+  file:
+    path: /opt/tomcat/
+    owner: tomcat
+    group: tomcat
+    mode: 0755
+    state: directory
+    recurse: yes
 
 - name: create tomcat.service file
-    file:
-                path: /etc/systemd/system/tomcat.service
-                    state: touch
+  file:
+    path: /etc/systemd/system/tomcat.service
+    state: touch
 
 - name: create tomcat service
-    blockinfile:
-                path: /etc/systemd/system/tomcat.service
-                    block: |
-                                  [Unit]
-                                        Description=Apache Tomcat Web Application Container
-                                              After=syslog.target network.target
-                                                    [Service]
-                                                          Type=forking
-                                                                User=tomcat
-                                                                      Group=tomcat
-                                                                            Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre
-                                                                                  Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
-                                                                                        Environment=CATALINA_HOME=/opt/tomcat
-                                                                                              Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
-                                                                                                    Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
-                                                                                                          ExecStart=/opt/tomcat/bin/startup.sh
-                                                                                                                ExecStop=/opt/tomcat/bin/shutdown.sh
+  blockinfile:
+    path: /etc/systemd/system/tomcat.service
+    block: |
+      [Unit]
+      Description=Apache Tomcat Web Application Container
+      After=syslog.target network.target
+      [Service]
+      Type=forking
+      User=tomcat
+      Group=tomcat
+      Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre
+      Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+      Environment=CATALINA_HOME=/opt/tomcat
+      Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
+      Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
+      ExecStart=/opt/tomcat/bin/startup.sh
+      ExecStop=/opt/tomcat/bin/shutdown.sh
 
-                                                                                                                      User=tomcat
-                                                                                                                            Group=tomcat
-                                                                                                                                  UMask=0007
-                                                                                                                                        RestartSec=10
-                                                                                                                                              Restart=always
-                                                                                                                                                    [Install]
-                                                                                                                                                          WantedBy=multi-user.target
+      User=tomcat
+      Group=tomcat
+      UMask=0007
+      RestartSec=10
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
 - name: enable & start tomcat service
-    systemd:
-                name: tomcat
-                    state: started
-                        enabled: yes
+  systemd:
+    name: tomcat
+    state: started
+    enabled: yes
 - name: setup app directory
-    file:
-                path: /app
-                    state: directory
+  file:
+    path: /app
+    state: directory
